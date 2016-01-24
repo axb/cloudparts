@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.3)
+project(examples)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+set(SOURCE_FILES load_read.cpp)
+add_executable(load_read ${SOURCE_FILES})
