@@ -8,6 +8,16 @@
 #include <functional>
 
 /*
+ * base storage object
+ */
+class stg_obj
+{
+public:
+   stg_obj() {}
+   virtual ~stg_obj() {}
+};
+
+/*
  * single partition manager
  *
  */
