@@ -1,0 +1,7 @@
+package cloudparts.log.data;
+
+message LogRecord {
+   optional int64 offset = 1;
+   optional string key = 2;
+   
+}
