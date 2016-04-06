@@ -29,20 +29,20 @@ set(GTEST_ROOT "/Users/alexbarakhtyan/works/3rdparty/googletest/googletest")
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
-#  CppRestSDK
+#  TODO: CppRestSDK
 #
 
 #  sources
-#  FIXME: make it better
+#  FIXME: make it cleaner
 #
 file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 file(GLOB proto ${CMAKE_CURRENT_SOURCE_DIR}/*.proto)
 
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${proto})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-
-source_group( "pb" FILES ${proto} )
+source_group( "proto" FILES ${proto} )
 
 #-------------------------------------
 #
@@ -65,7 +65,7 @@ add_executable(${PROJECT}
                 ${sources}
                 ${headers}
                 ${proto}
-                ${PROTO_SRCS} ${PROTO_HDRS} )
+                ${PROTO_SRCS} )
 
 target_link_libraries(	${PROJECT}
                         ${Boost_LIBRARIES} 

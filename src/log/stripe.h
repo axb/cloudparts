@@ -4,7 +4,6 @@
 //
 //  Created by axb on 05/03/16.
 //
-//
 
 #ifndef stripe_h
 #define stripe_h
@@ -41,6 +40,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////////
 
+#include "data.pb.h"
+
 //class Stripe
 //{
 //public:
@@ -52,12 +53,6 @@
 #include <boost/iostreams/device/mapped_file.hpp>
 
 namespace bs = boost::iostreams;
-class LogEntry
-{
-public:
-   std::string key, data;
-   std::string localtime;
-};
 
 class Stripe : public std::enable_shared_from_this< Stripe >
 {

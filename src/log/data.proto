@@ -3,5 +3,10 @@ package cloudparts.log.data;
 message LogRecord {
    optional int64 offset = 1;
    optional string key = 2;
-   
+   optional uint64 when = 3;
+   optional string host = 4;
+   optional string svc = 5;
+   optional string instance = 6;
+   optional string session = 7;
+   optional bytes payload = 8;
 }
