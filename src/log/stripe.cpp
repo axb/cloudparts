@@ -6,42 +6,134 @@
 //
 //
 
+#include "stripe.h"
+#include <sstream>
+#include <boost/filesystem.hpp>
 
-//CodedOutputStream writer = CodedOutputStream.newInstance(outputStreamToWrite);
-//writer.writeRawVarint32(bytes.length);
-//writer.writeRawBytes(bytes);
-//
-//To read the entire file:
-//CodedInputStream is = CodedInputStream.newInstance(inputStreamToWrap);
-//while (!is.isAtEnd()) {int size = is.readRawVarint32(); YourMessage.parseFrom(is.readRawBytes(size);}
+namespace fs = boost::filesystem;
+namespace ipc = boost::interprocess;
 
 
+Stripe::Stripe( const std::string& path ) : std::enable_shared_from_this<Stripe>() {
+   _path = path;
+}
 
+uint64_t Stripe::offset() {
+   uint64_t res = 0;
+   
+   fs::path dir(_path);
+   for ( fs::directory_entry& fe : fs::directory_iterator(dir) ) {
+      if ( fs::is_regular_file(fe.path()) ) {
+         try {
+            uint64_t offset = std::stoull( fe.path().filename().string() );
+            if ( offset > res )
+               res = offset;
+         } catch (...) {}
+      }
+   }
+   
+   /// @todo check "___current" file
+   
+   return res;
+}
 
+Stripe::back_inserter_adapter Stripe::appender() {
+   return back_inserter_adapter( shared_from_this() );
+}
 
-//bool writeDelimitedTo(
-//                      const google::protobuf::MessageLite& message,
-//                      google::protobuf::io::ZeroCopyOutputStream* rawOutput) {
-//   // We create a new coded stream for each message.  Don't worry, this is fast.
-//   google::protobuf::io::CodedOutputStream output(rawOutput);
-//   
-//   // Write the size.
-//   const int size = message.ByteSize();
-//   output.WriteVarint32(size);
-//   
-//   uint8_t* buffer = output.GetDirectBufferForNBytesAndAdvance(size);
-//   if (buffer != NULL) {
-//      // Optimization:  The message fits in one buffer, so use the faster
-//      // direct-to-array serialization path.
-//      message.SerializeWithCachedSizesToArray(buffer);
-//   } else {
-//      // Slightly-slower path when the message is multiple buffers.
-//      message.SerializeWithCachedSizes(&output);
-//      if (output.HadError()) return false;
-//   }
-//   
-//   return true;
-//}
+Stripe::back_inserter_adapter::back_inserter_adapter( Stripe::ptr_t ps ) {
+   _st = ps;
+}
+
+Stripe::back_inserter_adapter::~back_inserter_adapter() {
+   finishStream();
+}
+
+bool Stripe::back_inserter_adapter::openStream() {
+   
+   //
+   // build filename
+   //
+   std::stringstream dir;
+   dir << _st->path() << "/";
+   fs::create_directories(dir.str());
+   
+   //
+   // find current offset if not set
+   //
+   _cursor.offset = _st->offset();
+   
+   //
+   // create current file
+   //
+   dir << "___current";
+   {
+      ipc::file_mapping::remove(dir.str().c_str());
+      std::filebuf fbuf;
+      fbuf.open(dir.str().c_str(), std::ios_base::in | std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+      fbuf.pubseekoff(Stripe::SEGMENT_SIZE - 1, std::ios_base::beg);
+      fbuf.sputc(0);
+   }
+
+   //
+   // memmap to array
+   //
+   _cursor.mappedFile = ipc::file_mapping( dir.str().c_str(), ipc::read_write );
+   _cursor.mappedRegion = ipc::mapped_region( _cursor.mappedFile, ipc::read_write );
+   _cursor.stream.reset(new google::protobuf::io::ArrayOutputStream( _cursor.mappedRegion.get_address(), SEGMENT_SIZE ));
+   
+   return true;
+}
+
+void Stripe::back_inserter_adapter::finishStream() {
+   //
+   // put end-marker
+   //
+   google::protobuf::io::CodedOutputStream output( _cursor.stream.get() );
+   output.WriteVarint32(0);
+   
+   // close file
+   _cursor.reset();
+   
+   //
+   // rename file to last_offset
+   //
+   std::stringstream nm;
+   nm << _st->path() << "/" << _cursor.offset;
+   fs::rename(_st->path() + "/___current", nm.str() );
+}
+
+void Stripe::back_inserter_adapter::push_back(const value_type& rec ) {
+   if ( ! _cursor.stream ) {
+      openStream();
+   }
+   if ( rec.ByteSize() + _cursor.stream->ByteCount() + 33 > SEGMENT_SIZE ) {
+      finishStream();
+      openStream();
+   }
+   
+   /// @todo write delimited data
+   ++_cursor.offset;
+   {
+      google::protobuf::io::CodedOutputStream output( _cursor.stream.get() );
+
+      // write the size
+      const int size = rec.ByteSize();
+      output.WriteVarint32(size);
+
+      // write data
+      uint8_t* buffer = output.GetDirectBufferForNBytesAndAdvance(size);
+      if (buffer != NULL) {
+         rec.SerializeWithCachedSizesToArray(buffer);
+      } else {
+         rec.SerializeWithCachedSizes(&output);
+         if (output.HadError()) {
+            /// @todo
+         }
+      }
+   }
+}
+
 //
 //bool readDelimitedFrom(
 //                       google::protobuf::io::ZeroCopyInputStream* rawInput,
@@ -69,68 +161,3 @@
 //   
 //   return true;
 //}
-
-#include "stripe.h"
-#include <sstream>
-#include <boost/filesystem.hpp>
-
-namespace fs = boost::filesystem;
-
-void Stripe::buildFrame() {
-   //
-   // build filename
-   //
-   std::stringstream dir;
-   dir << "." << "/" << _id << "/"; // TODO: use root from cofig
-   fs::create_directories(dir.str());
-   
-   int ix = 0;
-   std::time_t tm = std::time(0);
-   std::string sfn;
-   do {
-      std::stringstream fn;
-      fn << dir.str() << tm << "_" << ix << ".log";
-      ++ix;
-      sfn = fn.str();
-   } while (fs::exists(sfn));
-   
-   //
-   // open mapped file
-   //
-   if (_frame.is_open())
-      _frame.close();
-   
-   bs::mapped_file_params args;
-   args.path = sfn;
-   args.new_file_size = FRAME_FILESIZE;
-   _frame.open(bs::mapped_file_sink(args));
-}
-
-Stripe::Stripe(std::string id_) : _id(id_), _lastOffset(1) {
-   /// <todo> read last offset from storage
-}
-
-uint64_t Stripe::operator() (uint64_t offset, std::string key, std::string data, std::string localtime) {
-   if ( offset == UINT64_MAX )
-      offset = ++_lastOffset;
-   
-//   LogEntry le{ offset, key, data, localtime };
-//   if (le.size() >= FRAME_FILESIZE)
-//      return false; // no way to write that big thing - "нельзя впихнуть невпихуемое"
-//   
-//   // let it be 2 lines - we can not OR'em
-//   if (!_frame.is_open())                                      buildFrame();
-//   if ((size_t)_frame.tellp() + le.size() >= FRAME_FILESIZE)   buildFrame();
-//   
-//   // finally write
-//   _frame << le;
-   
-   return offset;
-}
-
-Stripe::~Stripe() {
-   if (_frame.is_open()) {
-      std::flush(_frame);
-      _frame.close();
-   }
-}
