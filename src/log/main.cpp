@@ -7,9 +7,8 @@
 
 int main(int argc, char* argv[])
 {
-   Stripe::ptr_t   st ( new Stripe("./st1") );
-   
-   
+   Stripe::ptr_t st ( new Stripe("./st1") );
+
    //
    // test with Array...Stream over memmapped files
    //

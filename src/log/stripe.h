@@ -78,7 +78,8 @@ public:
       //      std::string _key;
       //      pointer _rec;
       mutable cloudparts::log::data::LogRec _current;
-      void bind() {}
+      void bind() {
+      }
       
    public:
       input_iterator& operator++(int steps) {
@@ -94,7 +95,6 @@ public:
          return false;
       }
       reference operator*() const {
-         /// @todo
          return _current;
       }
       const pointer operator->() const {
@@ -114,20 +114,19 @@ public:
       
       Stripe::ptr_t _st;
       
-      struct  TCursor {
+      struct  cursor_t {
          std::unique_ptr<google::protobuf::io::ArrayOutputStream>  stream;
          boost::interprocess::file_mapping         mappedFile;
          boost::interprocess::mapped_region        mappedRegion;
          uint64_t                                  offset;
          
-         TCursor() {
-            reset();
+         cursor_t() {
          }
-         TCursor( const TCursor& other ) {
+         cursor_t( const cursor_t& other ) {
             reset();
             offset = other.offset;
          }
-         ~TCursor() {
+         ~cursor_t() {
             reset();
          }
          void reset() {
