@@ -1,2 +1,9 @@
 .idea/**
 CMakeFiles/**
+build/**
+st1/**
+CMakeCache.txt
+cloudparts.log
+cmake_install.cmake
+data.pb.*
+Makefile
