@@ -14,25 +14,7 @@
 // File based logs storage
 //    Filename is like "<log_dir>/<stripe_id>/<last_offset>" or "___current" for last file
 //
-//
-// Usage
-//    --------  write data
-//    auto wr = Stripe( stripe_dir ).writer();
-//    wr( logRec ); -  write data
-//
-//    writer() - end-pointing output iterator
-//
-//    --------  read data
-//    begin() - all data iterator
-//    begin(key) - given key data iterator
-//    end(), end(key), rbegin(), rbegin(key) etc.
-//
-//    --------  housekeeping
-//    collapseKeys()
-//    reset() - start from beginning
-//    cutTail( from_offset) - remove history
-//
-/// @todo Features
+// @todo Features
 //    lock on files for concurrent writes and reads from many processes
 //    waiting on tail
 //    consistency checks
@@ -79,6 +61,7 @@ public:
       //      pointer _rec;
       mutable cloudparts::log::data::LogRec _current;
       void bind() {
+         /// @todo bind to current file position
       }
       
    public:
