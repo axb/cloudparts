@@ -24,11 +24,11 @@ int main(int argc, char* argv[])
    //
    // now reading
    //
-   // {
-   //    for ( auto it = st->lower_bound(1000000); it != st->end(); ++it ) {
-   //       std::cout << it->key() << std::endl;
-   //    }
-   // }
+   {
+      for ( auto it = st->lower_bound(1000000); it != st->end(); ++it ) {
+         std::cout << it->key() << std::endl;
+      }
+   }
    
    return 0;
 }
