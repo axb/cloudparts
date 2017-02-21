@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.3)
 
 include(CMakeToolsHelpers OPTIONAL)
 
-set (PROJECT cloudparts.log)
+set (PROJECT cloudparts.log)  
 
 project(${PROJECT})
 

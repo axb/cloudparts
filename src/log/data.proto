@@ -4,51 +4,51 @@ package cloudparts.log.data;
 //
 //
 message TxInfo {
-   optional string tx_scope = 1;
-   required uint64 tx_id = 2;
-   optional uint64 tx_branch = 3;
-   
-   enum TEvt {
-      begin = 0; 
-      prepare = 1;
-      primary_commit = 2;
-      primary_rollback = 3;
-      time_out = 4;
-      branch_begin = 5;
-      branch_prepare = 6;
-      branch_commit = 7;
-      branch_rollback = 8;
-      branch_time_out = 9;
-      backup_commit = 10;
-      backup_rollback = 11;
-      recovery_begin = 12; // TODO recovery protocol
-      recovery_check = 13;
-      recovery_complete = 14;
-   }
-   required TEvt tx_event = 4; // 
+  optional string tx_scope = 1;
+  required uint64 tx_id = 2;
+  optional uint64 tx_branch = 3;
+
+  enum TEvt {
+    begin = 0;
+    prepare = 1;
+    primary_commit = 2;
+    primary_rollback = 3;
+    time_out = 4;
+    branch_begin = 5;
+    branch_prepare = 6;
+    branch_commit = 7;
+    branch_rollback = 8;
+    branch_time_out = 9;
+    backup_commit = 10;
+    backup_rollback = 11;
+    recovery_begin = 12; // TODO recovery protocol
+    recovery_check = 13;
+    recovery_complete = 14;
+  }
+  required TEvt tx_event = 4; //
 }
 
 //
-// 
+//
 //
 message LogRec {
-   optional uint64 partition = 1;
-   optional uint64 offset = 2;
-   optional string key = 3;
-   optional uint64 when = 4;
-   optional string msg = 5;
-   
-   message Tag {
-      required string name = 1;
-      required string val = 2;
-   }
-   repeated Tag tags = 6;
-   
-   optional TxInfo tx = 7;
-   
-   optional string svc = 8;
-   optional string instance = 9;
-   optional string session = 10;
-   optional uint32 facility = 11;
-   optional uint32 severity = 12;
+  optional uint64 partition = 1;
+  optional uint64 offset = 2;
+  optional string key = 3;
+  optional uint64 when = 4;
+  optional string msg = 5;
+
+  message Tag {
+    required string name = 1;
+    required string val = 2;
+  }
+  repeated Tag tags = 6;
+
+  optional TxInfo tx = 7;
+
+  optional string svc = 8;
+  optional string instance = 9;
+  optional string session = 10;
+  optional uint32 facility = 11;
+  optional uint32 severity = 12;
 }
