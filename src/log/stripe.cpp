@@ -38,6 +38,55 @@ uint64_t Stripe::offset() {
   return res;
 }
 
+void Stripe::input_iterator::bind() {
+  /// @todo bind to current file position
+}
+
+Stripe::input_iterator &Stripe::input_iterator::operator++(int steps) {
+  /// @todo
+  return *this;
+}
+
+Stripe::input_iterator &Stripe::input_iterator::operator++() {
+  /// @todo
+  return *this;
+}
+
+bool Stripe::input_iterator::operator!=(const Stripe::input_iterator &other) {
+  /// @todo
+  return false;
+}
+
+Stripe::input_iterator::reference Stripe::input_iterator::operator*() const {
+  return _current;
+}
+
+const Stripe::input_iterator::pointer Stripe::input_iterator::
+operator->() const {
+  return &(operator*());
+}
+
+/// @todo
+Stripe::input_iterator Stripe::begin() {
+  input_iterator it;
+  return it;
+}
+
+Stripe::input_iterator Stripe::end() {
+  input_iterator it;
+  return it;
+}
+
+Stripe::input_iterator Stripe::tail() {
+  input_iterator it;
+  return it;
+}
+
+Stripe::input_iterator Stripe::lower_bound(uint64_t offset) {
+  input_iterator it;
+  return it;
+} //
+
 Stripe::back_inserter_adapter Stripe::appender() {
   return back_inserter_adapter(shared_from_this());
 }
@@ -136,27 +185,6 @@ void Stripe::back_inserter_adapter::push_back(const value_type &rec) {
     }
   }
 }
-
-/// @todo
-Stripe::input_iterator Stripe::begin() {
-  input_iterator it;
-  return it;
-}
-
-Stripe::input_iterator Stripe::end() {
-  input_iterator it;
-  return it;
-}
-
-Stripe::input_iterator Stripe::tail() {
-  input_iterator it;
-  return it;
-}
-
-Stripe::input_iterator Stripe::lower_bound(uint64_t offset) {
-  input_iterator it;
-  return it;
-} //
 
 //
 // bool readDelimitedFrom(

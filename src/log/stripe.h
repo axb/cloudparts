@@ -33,50 +33,36 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
+//
+// Single sequence of events.
+// Works in dedicated directory.
+//
 class Stripe : public std::enable_shared_from_this<Stripe> {
   std::string _path;
 
 public:
-  static const uint64_t SEGMENT_SIZE = 1 * 1024 * 1024;
+  static const uint64_t SEGMENT_SIZE =
+      1 * 1024 * 1024; // 1Mb - small number actually
+  typedef std::shared_ptr<Stripe> ptr_t;
+  Stripe(const std::string &path);
 
   std::string path() const { return _path; }
-
   uint64_t offset();
-
-  typedef std::shared_ptr<Stripe> ptr_t;
-
-  Stripe(const std::string &path);
 
   //
   // reader
   //
   class input_iterator : public std::iterator<std::forward_iterator_tag,
                                               cloudparts::log::data::LogRec> {
-    /// @todo
-    //  bool _end, _tail;
-    //
-    //      std::string _key;
-    //      pointer _rec;
     mutable cloudparts::log::data::LogRec _current;
-    void bind() {
-      /// @todo bind to current file position
-    }
+    void bind();
 
   public:
-    input_iterator &operator++(int steps) {
-      /// @todo
-      return *this;
-    }
-    input_iterator &operator++() {
-      /// @todo
-      return *this;
-    }
-    bool operator!=(const input_iterator &other) {
-      /// @todo
-      return false;
-    }
-    reference operator*() const { return _current; }
-    const pointer operator->() const { return &(operator*()); }
+    input_iterator &operator++(int steps);
+    input_iterator &operator++();
+    bool operator!=(const input_iterator &other);
+    reference operator*() const;
+    const pointer operator->() const;
   };
 
   input_iterator begin();                      // begin of history
