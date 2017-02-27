@@ -20,13 +20,13 @@
 //    last file
 //
 // @todo
+//    use Avro DataFile
 // Features
 //    lock on files for concurrent writes and reads from many processes
-//    (writer-pid-file in directory or lock on ___current-file)
-//    use Avro DataFile
+//          (writer-pid-file in directory or lock on ___current-file)
 //    waiting on tail
 //    consistency checks
-//    file-like API - open, read, write
+//    file-like API - open, read, write, close
 //    + boost::asio support for tail iterator
 //
 ///////////////////////////////////////////////////////////////////////////////////
