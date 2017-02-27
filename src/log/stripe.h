@@ -1,12 +1,17 @@
-//
-//  stripe.h
-//  cloudparts
-//
-//  Created by axb on 05/03/16.
-//
-
 #ifndef stripe_h
 #define stripe_h
+
+#include "data.pb.h"
+
+#include <functional>
+#include <memory>
+#include <string>
+
+#include <boost/interprocess/file_mapping.hpp>
+#include <boost/interprocess/mapped_region.hpp>
+
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 
 ///////////////////////////////////////////////////////////////////////////////////
 //
@@ -21,22 +26,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include "data.pb.h"
-
-#include <functional>
-#include <memory>
-#include <string>
-
-#include <boost/interprocess/file_mapping.hpp>
-#include <boost/interprocess/mapped_region.hpp>
-
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream_impl.h>
-
-//
-// Single sequence of events.
-// Works in dedicated directory.
-//
 class Stripe : public std::enable_shared_from_this<Stripe> {
   std::string _path;
 
@@ -54,10 +43,20 @@ public:
   //
   class input_iterator : public std::iterator<std::forward_iterator_tag,
                                               cloudparts::log::data::LogRec> {
+    friend class Stripe;
+    input_iterator(Stripe::ptr_t st, uint64_t offset);
+
+    Stripe::ptr_t _st;
+    // special values:
+    static const uint64_t M_BEGIN = 0;
+    static const uint64_t M_END = UINT64_MAX;
+    static const uint64_t M_TAIL = UINT64_MAX - 1;
+    uint64_t _offset;
     mutable cloudparts::log::data::LogRec _current;
     void bind();
 
   public:
+    input_iterator(const input_iterator &from);
     input_iterator &operator++(int steps);
     input_iterator &operator++();
     bool operator!=(const input_iterator &other);

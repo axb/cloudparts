@@ -1,3 +1,4 @@
+#include "scoped_timer.h"
 #include "stripe.h"
 #include <iostream>
 
@@ -8,6 +9,7 @@ int main(int argc, char *argv[]) {
   // test with Array...Stream over memmapped files
   //
   {
+    scoped_timer_t tm("writing");
     auto a = st->appender();
 
     cloudparts::log::data::LogRec lr;
@@ -24,6 +26,7 @@ int main(int argc, char *argv[]) {
   // now reading
   //
   {
+    scoped_timer_t tm("reading");
     for (auto it = st->lower_bound(1000000); it != st->end(); ++it) {
       std::cout << it->key() << std::endl;
     }

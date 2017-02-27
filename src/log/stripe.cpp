@@ -1,11 +1,3 @@
-//
-//  stripe.cpp
-//  cloudparts
-//
-//  Created by axb on 05/03/16.
-//
-//
-
 #include "stripe.h"
 #include <boost/filesystem.hpp>
 #include <sstream>
@@ -38,12 +30,31 @@ uint64_t Stripe::offset() {
   return res;
 }
 
+Stripe::input_iterator::input_iterator(Stripe::ptr_t st, uint64_t offset) {
+  _st = st;
+  _offset = offset;
+
+  // if (_offset == M_TAIL)
+  //   get last record
+}
+
+Stripe::input_iterator::input_iterator(const input_iterator &from) {
+  _st = from._st;
+  _offset = from._offset;
+}
+
 void Stripe::input_iterator::bind() {
   /// @todo bind to current file position
+  // if (!mapping_ready) {
+  //   find_file_by_offset, map it
+  // }
+  // find_by_offset
 }
 
 Stripe::input_iterator &Stripe::input_iterator::operator++(int steps) {
-  /// @todo
+  // @todo optimize for large steps
+  for (int k = 0; k < steps; ++k)
+    operator++();
   return *this;
 }
 
@@ -53,8 +64,7 @@ Stripe::input_iterator &Stripe::input_iterator::operator++() {
 }
 
 bool Stripe::input_iterator::operator!=(const Stripe::input_iterator &other) {
-  /// @todo
-  return false;
+  return _st == other._st && _offset == other._offset;
 }
 
 Stripe::input_iterator::reference Stripe::input_iterator::operator*() const {
@@ -66,24 +76,21 @@ operator->() const {
   return &(operator*());
 }
 
-/// @todo
 Stripe::input_iterator Stripe::begin() {
-  input_iterator it;
-  return it;
+  return input_iterator(shared_from_this(), input_iterator::M_BEGIN);
 }
 
 Stripe::input_iterator Stripe::end() {
-  input_iterator it;
-  return it;
+  return input_iterator(shared_from_this(), input_iterator::M_END);
 }
 
 Stripe::input_iterator Stripe::tail() {
-  input_iterator it;
-  return it;
+  return input_iterator(shared_from_this(), input_iterator::M_TAIL);
 }
 
 Stripe::input_iterator Stripe::lower_bound(uint64_t offset) {
-  input_iterator it;
+  // @fixme - find lower bound
+  input_iterator it(shared_from_this(), offset);
   return it;
 } //
 
@@ -98,22 +105,15 @@ Stripe::back_inserter_adapter::back_inserter_adapter(Stripe::ptr_t ps) {
 Stripe::back_inserter_adapter::~back_inserter_adapter() { finishStream(); }
 
 bool Stripe::back_inserter_adapter::openStream() {
-
-  //
   // build filename
-  //
   std::stringstream dir;
   dir << _st->path() << "/";
   fs::create_directories(dir.str());
 
-  //
   // find current offset if not set
-  //
   _cursor.offset = _st->offset();
 
-  //
   // create current file
-  //
   dir << "___current";
   {
     ipc::file_mapping::remove(dir.str().c_str());
@@ -125,9 +125,7 @@ bool Stripe::back_inserter_adapter::openStream() {
     fbuf.sputc(0);
   }
 
-  //
   // memmap to array
-  //
   _cursor.mappedFile = ipc::file_mapping(dir.str().c_str(), ipc::read_write);
   _cursor.mappedRegion =
       ipc::mapped_region(_cursor.mappedFile, ipc::read_write);
