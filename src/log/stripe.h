@@ -19,10 +19,15 @@
 //    Filename is like "<log_dir>/<stripe_id>/<last_offset>" or "___current" for
 //    last file
 //
-// @todo Features
+// @todo
+// Features
 //    lock on files for concurrent writes and reads from many processes
+//    (writer-pid-file in directory or lock on ___current-file)
+//    use Avro DataFile
 //    waiting on tail
 //    consistency checks
+//    file-like API - open, read, write
+//    + boost::asio support for tail iterator
 //
 ///////////////////////////////////////////////////////////////////////////////////
 
@@ -64,9 +69,10 @@ public:
     const pointer operator->() const;
   };
 
-  input_iterator begin();                      // begin of history
-  input_iterator end();                        // end-marker
-  input_iterator tail();                       // live-end iterator
+  input_iterator begin(); // begin of history
+  input_iterator end();   // end-marker
+  input_iterator tail();  // live-end iterator (++ does not make it "end" but
+                          // locks or does nothing when on the last record)
   input_iterator lower_bound(uint64_t offset); //
 
   //

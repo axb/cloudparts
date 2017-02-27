@@ -6,7 +6,7 @@ int main(int argc, char *argv[]) {
   Stripe::ptr_t st(new Stripe("./st1"));
 
   //
-  // test with Array...Stream over memmapped files
+  // writing
   //
   {
     scoped_timer_t tm("writing");
