@@ -115,33 +115,14 @@ bool Stripe::back_inserter_adapter::openStream() {
 
   // create current file
   dir << "___current";
-  {
-    ipc::file_mapping::remove(dir.str().c_str());
-    std::filebuf fbuf;
-    fbuf.open(dir.str().c_str(),
-              std::ios_base::in | std::ios_base::out | std::ios_base::trunc |
-                  std::ios_base::binary);
-    fbuf.pubseekoff(Stripe::SEGMENT_SIZE - 1, std::ios_base::beg);
-    fbuf.sputc(0);
-  }
+  {}
 
   // memmap to array
-  _cursor.mappedFile = ipc::file_mapping(dir.str().c_str(), ipc::read_write);
-  _cursor.mappedRegion =
-      ipc::mapped_region(_cursor.mappedFile, ipc::read_write);
-  _cursor.stream.reset(new google::protobuf::io::ArrayOutputStream(
-      _cursor.mappedRegion.get_address(), SEGMENT_SIZE));
 
   return true;
 }
 
 void Stripe::back_inserter_adapter::finishStream() {
-  //
-  // put end-marker
-  //
-  google::protobuf::io::CodedOutputStream output(_cursor.stream.get());
-  output.WriteVarint32(0);
-
   // close file
   _cursor.reset();
 

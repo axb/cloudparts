@@ -20,17 +20,18 @@ int main(int argc, char *argv[]) {
       lr.set_partition(100);
       wr = lr;
     }
+    tm.setCount(1005000); // google-based solution gives 1.2 seconds
   }
 
   //
   // now reading
   //
-  {
-    scoped_timer_t tm("reading");
-    for (auto it = st->lower_bound(1000000); it != st->end(); ++it) {
-      std::cout << it->key() << std::endl;
-    }
-  }
+  // {
+  //   scoped_timer_t tm("reading");
+  //   for (auto it = st->lower_bound(1000000); it != st->end(); ++it) {
+  //     std::cout << it->key() << std::endl;
+  //   }
+  // }
 
   return 0;
 }

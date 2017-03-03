@@ -7,11 +7,7 @@
 #include <memory>
 #include <string>
 
-#include <boost/interprocess/file_mapping.hpp>
-#include <boost/interprocess/mapped_region.hpp>
-
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <Avro/DataFile.hh>
 
 ///////////////////////////////////////////////////////////////////////////////////
 //
@@ -77,15 +73,13 @@ public:
 
   //
   // writer
+  // @todo lock pid-file
   //
   class back_inserter_adapter {
 
     Stripe::ptr_t _st;
 
     struct cursor_t {
-      std::unique_ptr<google::protobuf::io::ArrayOutputStream> stream;
-      boost::interprocess::file_mapping mappedFile;
-      boost::interprocess::mapped_region mappedRegion;
       uint64_t offset;
 
       cursor_t() {}
@@ -94,15 +88,7 @@ public:
         offset = other.offset;
       }
       ~cursor_t() { reset(); }
-      void reset() {
-        namespace ipc = boost::interprocess;
-        stream.release();
-        mappedRegion.flush();
-        ipc::mapped_region tmr;
-        mappedRegion.swap(tmr);
-        ipc::file_mapping tmf;
-        mappedFile.swap(tmf);
-      }
+      void reset() {}
     } _cursor;
 
     bool openStream();
